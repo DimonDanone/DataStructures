@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <map>
 
-#include "rpForest.h"
+#include <rpForest.h>
 #include "log_duration.h"
 
 using Pint = NSrpForest::Point<int>;
@@ -32,12 +32,12 @@ void TestForest(std::set<Pint>& train, int nn_count, int how_much_points) {
     std::vector<int> points_res;
 
     {
-        LOG_DURATION("build")
+        LOG_DURATION("build + knn finding")
         int how_much_trees = 200; // Кол-во деревьев
         NSrpForest::RpForest<int> async_forest(train, how_much_trees, 2); // Сохранение леса
 
         {
-            LOG_DURATION("KNN finding")
+            LOG_DURATION("only KNN finding")
 
             Pint p_test;
             for (int i = 0; i < how_much_points; ++i) {
@@ -86,18 +86,17 @@ void TestForest(std::set<Pint>& train, int nn_count, int how_much_points) {
         }
 
         if (is_ok_points) {
-            std::cout << "Ok. (POINTS)";
+            //std::cout << "Ok. (POINTS)";
             ok_cout++;
         } else {
             std::cout << "Not Ok. (POINTS)";
             for (int i = 0; i < nn_count; i++) {
                 std::cout << "(" << right_ans_points[i] << "??" << forest_answers[now_point_pos][i] << "),   ";
             }
-            std::cout << "for point: " << point;
+            std::cout << "for point: " << point << std::endl;
             not_ok_count++;
         }
 
-        std::cout << std::endl;
         now_point_pos++;
     }
 
@@ -145,26 +144,32 @@ int main() {
     std::set<Pint> train;
     std::map<Pint, std::string> train_type;
     std::ifstream file("test.txt");
-
-    int k = 0;
-    while (!file.eof()) {
-        int x, y;
-        std::string s;
-        file >> x >> y >> s;
-        Pint p({x, y});
-        train.insert(p);
-        train_type[p] = s;
-        if (k == 400) {
-            break;
-        }
-        k++;
+    if (!file) {
+        std::cout << "NO FILE!\n"; 
     }
 
-    TestForest(train, nn_count, 100);
+    {
+        LOG_DURATION("Correct work of forest based on 400 points")
+        int k = 0;
+        while (!file.eof()) {
+            int x, y;
+            std::string s;
+            file >> x >> y >> s;
+            Pint p({x, y});
+            train.insert(p);
+            train_type[p] = s;
+            if (k == 400) {
+                break;
+            }
+            k++;
+        }
+
+        TestForest(train, nn_count, 100);
+    }
     train.clear();
 
     {
-        LOG_DURATION("Bif test:")
+        LOG_DURATION("Big test (1e4 points)")
 
         for (int i = 0; i < 1e4; ++i) {
             train.insert(GeneratePint());
