@@ -24,35 +24,22 @@ namespace NSrpForest {
     public:
         RpForest() = default;
 
-        /*!
-         * \brief Конструктор леса на основе тренировочной выборки
-         * \param[in] train - тренировочная выборка
-         * \param[in] how_much - кол-во деревьев в лесу 
-        */
         RpForest(const std::set<Point<NumericType>>& train, int how_much)
                 : U(train)
                 , how_much_trees_in_forest(how_much)
         {
-            int leaf_size = train.size() * 0.01 > 2 ? train.size() * 0.01 : 2;
+            int leaf_size = train.size() * 0.05 > 2 ? train.size() * 0.05 : 2;
+            if (leaf_size > 1000) {
+                leaf_size = 1000;
+            }
+
             for (int i = 0; i < how_much_trees_in_forest; ++i) {
                 forest.push_back(RpTree(U, leaf_size));
             }
         }
 
-        /*!
-         * \brief Конструктор леса на основк тренировочной выборки (многопоточный)
-         * \param[in] train - тренировочная выборка
-         * \param[in] how_much - кол-во деревьев в лесу
-         * \param[in] thread_count - кол-во потоков
-        */
         RpForest(const std::set<Point<NumericType>> &train, int how_much, int thread_count);
 
-
-        /*!
-         * \brief Поиск Knn для точки
-         * param[in] point_q - точка, для которой ищется knn
-         * param[in] k - кол-во соседей
-        */
         std::vector<Point<NumericType>> KnnForPoint(const Point<NumericType>& point_q, int k) {
             std::set<Point<NumericType>> all_knn;
 
@@ -72,20 +59,21 @@ namespace NSrpForest {
 
             std::sort(res.begin(), res.end(),
                       [point_q](const Point<NumericType>& first, const Point<NumericType> &second) {
-                          return Distance(first, point_q) < Distance(second, point_q);
+                          long long d1 = Distance(first, point_q);
+                          long long d2 = Distance(second, point_q);
+                          if (d1 != d2) {
+                              return d1 < d2;
+                          }
+                          return first < second;
                       });
 
-            if (res.size() > k) {
+            /*if (res.size() > k) {
                 res.resize(k);
-            }
+            }*/
 
             return res;
         }
 
-        /*!
-         * \brief Запись леса в файл
-         * \param[in] file - файл, в который ведется запись
-        */
         void WriteForestTo(std::ofstream& file) const {
             int Usize = U.size();
             file.write(reinterpret_cast<const char*>(&Usize), sizeof(Usize));
@@ -100,10 +88,6 @@ namespace NSrpForest {
             }
         }
 
-        /*!
-         * \brief Чтение леса из файла
-         * \param[in] file - файл, из которого ведется чтение
-        */
         void ReadForestFrom(std::ifstream& file) {
             U.clear();
             forest.clear();
@@ -136,7 +120,11 @@ namespace NSrpForest {
 
     template <typename NumericType>
     void RpForest<NumericType>::MakeTrees(RpForest<NumericType>* now_forest, const std::set<Point<NumericType>>& train, int trees_count) {
-        int leaf_size = train.size() * 0.01 > 2 ? train.size() * 0.01 : 2;
+        int leaf_size = train.size() * 0.05 > 2 ? train.size() * 0.05 : 2;
+        if (leaf_size > 1000) {
+            leaf_size = 1000;
+        }
+
         for (int i = 0; i < trees_count; ++i) {
             auto new_tree = RpTree<NumericType>(train, leaf_size);
             std::lock_guard<std::mutex> locker(now_forest->m_);

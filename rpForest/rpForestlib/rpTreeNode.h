@@ -20,11 +20,10 @@ namespace NSrpForest {
     private:
         std::string message{""};
     };
-    
-    /*!
-     * \brief Шаблонный класс узла дерева
-     * \param[in] NumericType - тип данных Point
-    */
+
+    template <typename NumericType>
+    using pIter = typename std::set<Point<NumericType>>::iterator;
+
     template <typename NumericType>
     class RpTreeNode {
     public:
@@ -60,11 +59,6 @@ namespace NSrpForest {
             return *this;
         }
 
-        /*!
-         * \brief Конструтор на основе выборки данных
-         * \param[in] U - выборка, которую будет хранить узел
-         * \param[in] min_W_size - минимальное количество точек в узле
-        */
         explicit RpTreeNode(const std::set<Point<NumericType>>& U, int min_W_size)
                 : node_points(U)
                 , Ns(min_W_size)
@@ -119,9 +113,6 @@ namespace NSrpForest {
             }
         }
 
-        /*!
-         * \brief Dfs по дереву
-        */
         std::set<Point<NumericType>>& TreeDownhill(const Point<NumericType>& point) {
             if (point.at(projection_for_node) < mid_for_node) {
                 if (left == nullptr) {
@@ -136,10 +127,6 @@ namespace NSrpForest {
             return right->TreeDownhill(point);
         }
 
-        /*!
-         * \brief Запись узла в файл
-         * \param[in] file - файл, в который ведется запись
-        */
         void WriteNodeTo(std::ofstream& file) const {
             int node_points_size = node_points.size();
             file.write(reinterpret_cast<const char*>(&node_points_size), sizeof(node_points_size));
@@ -166,10 +153,6 @@ namespace NSrpForest {
             }
         }
 
-        /*!
-         * \brief Чтение узла из файла
-         * \param[in] file - файл, из которого ведется чтение
-        */
         void ReadNodeFrom(std::ifstream& file) {
             if (!file.eof()) {
                 node_points.clear();
