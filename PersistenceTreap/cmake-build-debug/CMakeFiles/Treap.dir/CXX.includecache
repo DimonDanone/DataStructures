@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/dimon_danone/cpp_projects/Treap/PersistentTreapHeap.h
+treap.h
+/home/dimon_danone/cpp_projects/Treap/treap.h
+vector
+-
+
+/home/dimon_danone/cpp_projects/Treap/main.cpp
+iostream
+-
+PersistentTreapHeap.h
+/home/dimon_danone/cpp_projects/Treap/PersistentTreapHeap.h
+
+/home/dimon_danone/cpp_projects/Treap/treap.h
+iostream
+-
+algorithm
+-
+cmath
+-
+memory
+-
+random
+-
+sstream
+-
+
